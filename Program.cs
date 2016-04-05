@@ -74,6 +74,7 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
             if (COOKIE == null)
             {
                 irc.SendMessage(SendType.Action, channel, "cookie error: " + cfnname);
+                return;
 
             }
             var sessionId = COOKIE.Split(new string[] { "%3A" }, StringSplitOptions.None)[0];
