@@ -1,0 +1,5 @@
+{
+    "channel":"#twitchchannel",
+    "username":"twitchusername",
+    "password":"oauth:YOUR_OAUTHKEYHERE"
+}
