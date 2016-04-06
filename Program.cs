@@ -4,7 +4,7 @@ using System.Text;
 using Meebey.SmartIrc4net;
 using System.Threading;
 using System.Net;
-using System.Web.Helpers;
+using Newtonsoft.Json;
 using Frida;
 using System.Windows.Threading;
 /// <summary>
@@ -56,7 +56,7 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
         }
         private static void onMessage(object sender, ScriptMessageEventArgs e)
         {
-            dynamic message = Json.Decode(e.Message);
+            dynamic message = JsonConvert.DeserializeObject(e.Message);
             if (message.type == "info" || message.type == "log")
                 Console.WriteLine(message.payload);
             else if (message.type == "error")
@@ -71,6 +71,13 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
         }
         public static void inviteCFNUser(string cfnname)
         {
+            System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate,
+                        System.Security.Cryptography.X509Certificates.X509Chain chain,
+                        System.Net.Security.SslPolicyErrors sslPolicyErrors)
+{
+    return true; // **** Always accept
+};
             if (COOKIE == null)
             {
                 irc.SendMessage(SendType.Action, channel, "cookie error: " + cfnname);
@@ -87,7 +94,7 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
             var dataStream = response.GetResponseStream();
             System.IO.StreamReader reader = new System.IO.StreamReader(dataStream);
             string responseFromServer = reader.ReadToEnd();
-            dynamic responseJSON = Json.Decode(responseFromServer);
+            dynamic responseJSON = JsonConvert.DeserializeObject(responseFromServer);
             if (responseJSON.response[0].searchresult[0].publicid == null)
             {
                 irc.SendMessage(SendType.Action, channel, "error inviting: " + cfnname);
@@ -108,7 +115,7 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
             dataStream = response.GetResponseStream();
             reader = new System.IO.StreamReader(dataStream);
             responseFromServer = reader.ReadToEnd();
-            responseJSON = Json.Decode(responseFromServer);
+            responseJSON = JsonConvert.DeserializeObject(responseFromServer);
             if (responseJSON.response[0].result == "-1")
             {
                 irc.SendMessage(SendType.Action, channel, "error inviting: " + cfnname);
@@ -126,7 +133,16 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
             System.Console.WriteLine("Received: " + e.Data.RawMessage);
             if (e.Data.Message != null && e.Data.Message.StartsWith("!invite "))
             {
-                inviteCFNUser(e.Data.Message.Substring(8));
+                try
+                { 
+                    inviteCFNUser(e.Data.Message.Substring(8));
+                }
+                catch(Exception err)
+                {
+                    irc.SendMessage(SendType.Action, channel, "exception inviting: " + e.Data.Message.Substring(8));
+                    Console.WriteLine("Exception:"+err.Message);
+                    Console.WriteLine("Exception:"+err.StackTrace);
+                }
             }
         }
         static string channel = "";
@@ -140,7 +156,7 @@ Interceptor.attach(ptr('0x140AEDD7E'), function(args) {
                 Console.ReadLine();
             }
             //Load config
-            dynamic config = Json.Decode(System.IO.File.ReadAllText("config.json"));
+            dynamic config = JsonConvert.DeserializeObject(System.IO.File.ReadAllText("config.json"));
             channel = config.channel;
             username = config.username;
             password = config.password;
