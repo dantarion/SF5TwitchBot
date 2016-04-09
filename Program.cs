@@ -80,7 +80,7 @@ delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certi
 };
             if (COOKIE == null)
             {
-                irc.SendMessage(SendType.Action, channel, "cookie error: " + cfnname);
+                irc.SendMessage(SendType.Action, channel, "cookie hasn't been captured");
                 return;
 
             }
@@ -97,7 +97,7 @@ delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certi
             dynamic responseJSON = JsonConvert.DeserializeObject(responseFromServer);
             if (responseJSON.response[0].searchresult[0].publicid == null)
             {
-                irc.SendMessage(SendType.Action, channel, "error inviting: " + cfnname);
+                irc.SendMessage(SendType.Action, channel, "Couldn't look up: " + cfnname);
                 return;
             }
             string cfnID = responseJSON.response[0].searchresult[0].publicid;
@@ -118,10 +118,10 @@ delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certi
             responseJSON = JsonConvert.DeserializeObject(responseFromServer);
             if (responseJSON.response[0].result == "-1")
             {
-                irc.SendMessage(SendType.Action, channel, "error inviting: " + cfnname);
+                irc.SendMessage(SendType.Action, channel, "Error inviting: " + cfnname);
                 return;
             }
-            irc.SendMessage(SendType.Action, channel, "invited " + cfnname);
+            irc.SendMessage(SendType.Action, channel, "Invited " + cfnname);
         }
         public static void OnError(object sender, ErrorEventArgs e)
         {
